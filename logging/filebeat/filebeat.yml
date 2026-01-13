@@ -8,3 +8,6 @@ processors:
 
 output.logstash:
   hosts: ["logstash:5044"]
+
+logging.level: info
+logging.to_stdout: true
