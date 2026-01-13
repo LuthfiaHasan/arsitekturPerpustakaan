@@ -1,0 +1,80 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "EurekaServerApplication",
+            "request": "launch",
+            "mainClass": "com.fifi.eureka_server.EurekaServerApplication"
+        },
+        {
+            "type": "java",
+            "name": "BukuApplication",
+            "request": "launch",
+            "mainClass": "BukuApplication",
+            "projectName": "buku"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AnggotaApplication<anggota>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.fifi.anggota.AnggotaApplication",
+            "projectName": "anggota",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ApiGatewayApplication<api-gateway>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.fifi.api_gateway.ApiGatewayApplication",
+            "projectName": "api-gateway",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-BukuApplication<buku>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.fifi.buku.BukuApplication",
+            "projectName": "buku",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-PeminjamanApplication<peminjaman>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.fifi.peminjaman.PeminjamanApplication",
+            "projectName": "peminjaman",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-PengembalianApplication<pengembalian>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.fifi.pengembalian.PengembalianApplication",
+            "projectName": "pengembalian",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-EurekaServerApplication<eureka-server>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.fifi.eureka_server.EurekaServerApplication",
+            "projectName": "eureka-server",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

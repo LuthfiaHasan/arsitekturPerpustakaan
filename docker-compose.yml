@@ -1,0 +1,136 @@
+version: "3.8"
+
+services:
+  # ======================================================
+  # CORE SERVICES
+  # ======================================================
+
+  eureka-server:
+    image: steeltoeoss/eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      JAVA_OPTS: "-Xmx256m -Xss512k"
+    networks:
+      - microservices-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - microservices-network
+
+  # ======================================================
+  # MICROSERVICES (TIDAK DIUBAH)
+  # ======================================================
+  anggota-service:
+    build: ./anggota
+    container_name: anggota-service
+    ports:
+      - "8090:8087"
+    networks:
+      - microservices-network
+
+  buku-service:
+    build: ./buku
+    container_name: buku-service
+    ports:
+      - "8091:8088"
+    networks:
+      - microservices-network
+
+  pengembalian-service:
+    build: ./pengembalian
+    container_name: pengembalian-service
+    ports:
+      - "8092:8089"
+    networks:
+      - microservices-network
+
+  peminjaman-service:
+    build: ./peminjaman
+    container_name: peminjaman-service
+    ports:
+      - "8093:8086"
+    networks:
+      - microservices-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "9000:9000"
+    networks:
+      - microservices-network
+
+  # ======================================================
+  # ELK STACK - CENTRALIZED LOGGING (FIXED ✅)
+  # ======================================================
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.ml.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    networks:
+      - microservices-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - microservices-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    container_name: logstash
+    ports:
+      - "5044:5044"
+    volumes:
+      - ./logging/logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
+    networks:
+      - microservices-network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.12.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logging/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      - logstash
+    networks:
+      - microservices-network
+      
+volumes:
+  anggota_data:
+  buku_data:
+  peminjaman_data:
+  pengembalian_data:
+
+networks:
+  microservices-network:
+    driver: bridge
+
