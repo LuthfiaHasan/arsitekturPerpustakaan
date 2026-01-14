@@ -128,11 +128,55 @@ services:
 
 
       
+
+  # ======================================================
+  # MONITORING (Prometheus & Grafana)
+  # ======================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - microservices-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - microservices-network
+
+  # ======================================================
+  # CI/CD (Jenkins)
+  # ======================================================
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock # Allow Jenkins to access host Docker
+    user: root # Needed to access docker socket in simple setup
+    networks:
+      - microservices-network
+
 volumes:
   anggota_data:
   buku_data:
   peminjaman_data:
   pengembalian_data:
+  jenkins_home: # Persist Jenkins data
 
 networks:
   microservices-network:
