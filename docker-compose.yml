@@ -37,6 +37,8 @@ services:
       - "8090:8087"
     networks:
       - microservices-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
 
   buku-service:
     build: ./buku
@@ -45,6 +47,8 @@ services:
       - "8091:8088"
     networks:
       - microservices-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
 
   pengembalian-service:
     build: ./pengembalian
@@ -53,6 +57,8 @@ services:
       - "8092:8089"
     networks:
       - microservices-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
 
   peminjaman-service:
     build: ./peminjaman
@@ -61,6 +67,8 @@ services:
       - "8093:8086"
     networks:
       - microservices-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
 
   api-gateway:
     build: ./api-gateway
@@ -69,6 +77,8 @@ services:
       - "9000:9000"
     networks:
       - microservices-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
 
   # ======================================================
   # ELK STACK - CENTRALIZED LOGGING (FIXED ✅)
@@ -147,6 +157,8 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -162,7 +174,7 @@ services:
     image: jenkins/jenkins:lts
     container_name: jenkins
     ports:
-      - "8080:8080"
+      - "9080:8080"
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
