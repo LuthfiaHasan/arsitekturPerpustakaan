@@ -1,0 +1,314 @@
+
+
+1. **CCTV & alarm** → *Monitoring*
+2. **Buku laporan kejadian** → *Logging*
+3. **Robot tukang otomatis** → *CI/CD (Jenkins)*
+
+Nah, itulah yang sedang kita setup:
+
+| Pilar      | Tool                 | Fungsinya                       |
+| ---------- | -------------------- | ------------------------------- |
+| Monitoring | Prometheus + Grafana | Lihat CPU, RAM, request, uptime |
+| Logging    | ELK Stack            | Semua log jadi satu tempat      |
+| Automation | Jenkins              | Build & test otomatis           |
+
+Semua ini **dibungkus Docker**, jadi **1 perintah = semuanya jalan**.
+Ini yang bikin setup kamu sudah level *real-world DevOps* 
+
+---
+
+## Persiapan Awal: “Satu Perintah untuk Semua”
+
+### Kenapa Docker Compose?
+
+Karena:
+
+* Tidak install manual satu-satu
+* Versi sudah cocok
+* Bisa jalan di laptop siapapun
+
+### Langkahnya
+
+Masuk ke folder project kamu:
+
+```bash
+d:\sem5\arsitekturPerpustakaan
+```
+
+Lalu jalankan:
+
+```bash
+docker-compose up -d
+```
+
+### Apa yang terjadi di balik layar?
+
+* Docker download image (Prometheus, Grafana, ELK, Jenkins, dll)
+* Container dibuat
+* Semua service masuk **1 jaringan internal**
+
+
+# 1️⃣ Monitoring – Prometheus & Grafana
+
+> *“Aplikasi aku sehat nggak sih?”*
+
+Monitoring itu **bukan cuma lihat server hidup**, tapi:
+
+* RAM bocor nggak?
+* CPU naik nggak?
+* Service ada yang mati?
+
+## Step 1: Buka Grafana
+
+Browser →
+**[http://localhost:3000](http://localhost:3000)**
+
+Login:
+
+* **Username:** `admin`
+* **Password:** `admin`
+
+Kalau disuruh ganti password → bebas (atau skip).
+
+![Image](https://signoz.io/img/guides/2024/08/what-is-the-default-username-and-password-for-grafana-login-page-image.webp)
+
+![Image](https://grafana.com/media/docs/grafana/dashboards-overview/complex-dashboard-example.png)
+
+---
+
+## Step 2: Hubungkan Grafana ke Prometheus
+
+Grafana itu **tukang gambar grafik**, tapi **datanya dari Prometheus**.
+
+### Caranya:
+
+1. Menu kiri → **Connections / ⚙️ Data Sources**
+2. **Add data source**
+3. Pilih **Prometheus**
+4. Isi URL:
+
+   ```
+   http://prometheus:9090
+   ```
+
+### Kenapa bukan `localhost`?
+
+Karena:
+
+* Grafana & Prometheus **jalan di Docker**
+* Di jaringan Docker, mereka **kenal nama container**
+* Nama containernya = `prometheus`
+
+Klik **Save & Test**
+
+Kalau muncul hijau:
+
+> *Successfully queried the Prometheus API*
+
+Berarti **Grafana & Prometheus sudah ngobrol dengan baik**.
+
+---
+
+## Step 3: Import Dashboard (Nggak Perlu Ribet)
+
+Kamu **tidak perlu bikin grafik dari nol**.
+
+### Caranya:
+
+1. Menu kiri → **Dashboards**
+2. **New → Import**
+3. Masukkan ID:
+
+   * `4701` → JVM (Micrometer)
+   * `11378` → Spring Boot Microservices
+4. Klik **Load**
+5. Pilih data source: **Prometheus**
+6. Klik **Import**
+
+
+Sekarang kamu bisa lihat:
+
+* CPU usage
+* Memory heap & non-heap
+* Uptime service
+* Jumlah request
+
+Ini **persis yang dipakai di production**.
+
+---
+
+# Centralized Logging – ELK Stack
+
+> *“Error-nya apa ya? Terjadi di service mana?”*
+
+Tanpa logging terpusat:
+
+* Harus cek container satu-satu
+* Ribet
+* Buang waktu
+
+Dengan ELK:
+
+> **Semua log → satu layar**
+
+## Step 1: Buka Kibana
+
+Browser →
+**[http://localhost:5601](http://localhost:5601)**
+
+Kibana memang **berat di awal**, sabar ya.
+
+![Image](https://static-www.elastic.co/v3/assets/bltefdd0b53724fa2ce/bltd01281e2aa656f58/6881472454ac0d3c9890ee66/illustrated-screenshot-hero-dashboards.png)
+
+![Image](https://us1.discourse-cdn.com/elastic/original/3X/0/b/0b8a293efd3d14f614cd06fc5f57eafea1dcd97e.png)
+
+---
+
+## Step 2: Buat Data View (Sekali Seumur Hidup)
+
+Kibana perlu tahu:
+
+> “Log mana yang mau saya tampilkan?”
+
+### Caranya:
+
+1. Menu ☰ kiri atas → **Stack Management**
+2. Pilih **Data Views / Index Patterns**
+3. Klik **Create data view**
+4. Isi:
+
+   * **Name:** `filebeat-*`
+   * **Timestamp:** `@timestamp`
+5. Klik **Save**
+
+Kenapa `filebeat-*`?
+
+* Filebeat itu yang **ngumpulin log dari semua container**
+* Nama index otomatis pakai prefix itu
+
+---
+
+## Step 3: Baca Log
+
+1. Menu ☰ → **Discover**
+2. Pastikan kiri atas: `filebeat-*`
+
+Sekarang kamu bisa:
+
+* Cari `error`
+* Cari `Exception`
+* Filter `container.name`
+
+**Semua service → satu tempat**
+
+Ini **sangat kepakai kalau debugging**.
+
+---
+
+# Automation – Jenkins (CI/CD)
+
+> *“Capek build manual? Biar robot aja.”*
+
+Jenkins itu:
+
+* Build otomatis
+* Test otomatis
+* Bisa dikembangkan ke deploy otomatis
+
+## Step 1: Buka Jenkins
+
+Browser →
+**[http://localhost:9080](http://localhost:9080)**
+
+Ingat: **9080, bukan 8080**
+
+![Image](https://i.sstatic.net/EeLNT.png)
+
+![Image](https://www.jenkins.io/doc/book/resources/blueocean/dashboard/overview.png)
+
+---
+
+## Step 2: Unlock Jenkins (Pertama Kali)
+
+Jenkins minta password rahasia.
+
+Di terminal:
+
+```bash
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+Copy → paste ke browser → **Continue**
+
+---
+
+## Step 3: Install Plugin
+
+Pilih:
+**Install suggested plugins**
+
+
+* Download
+* Install
+* Setup environment
+
+Setelah itu:
+
+* Buat admin user
+* Biarkan URL default
+* Klik **Start using Jenkins**
+
+---
+
+## Step 4: Buat Pipeline
+
+Pipeline = **instruksi ke Jenkins**
+
+1. Dashboard → **New Item**
+2. Nama: `Perpustakaan-Build`
+3. Pilih **Pipeline**
+
+### Konfigurasi:
+
+* Definition: **Pipeline script from SCM**
+* SCM: **Git**
+* Repository URL:
+  *Disarankan repo GitHub*
+* Branch:
+
+  ```
+  */main
+  ```
+* Script Path:
+
+  ```
+  Jenkinsfile
+  ```
+
+Klik **Save**
+
+---
+
+## Step 5: Build Sekarang
+
+Klik **Build Now**
+
+Lihat:
+
+* Build History → `#1`
+* Console Output
+
+Kalau hijau/biru:
+**Build sukses**
+
+---
+
+## Penutup: Kenapa Ini Penting?
+
+Sekarang kamu punya:
+
+**Grafana** → tahu aplikasi sehat atau tidak
+**Kibana** → cepat cari error
+**Jenkins** → kerjaan otomatis
+
+
